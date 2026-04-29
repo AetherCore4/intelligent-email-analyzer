@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligent Email Analyzer</title>
+    <meta name="description" content="AI-powered tool to identify malicious, spam, or clean emails.">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0a0c10;
+            --bg-surface: rgba(23, 27, 35, 0.6);
+            --bg-surface-hover: rgba(30, 35, 45, 0.8);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-primary: #f2f5f8;
+            --text-secondary: #94a3b8;
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.5);
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.4);
+            --danger: #ef4444;
+            --danger-glow: rgba(239, 68, 68, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Dynamic Background */
+        .ambient-light {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .light-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--accent-glow);
+            top: -100px;
+            left: -100px;
+            animation: float 10s ease-in-out infinite;
+        }
+
+        .light-2 {
+            width: 500px;
+            height: 500px;
+            background: rgba(139, 92, 246, 0.3);
+            bottom: -200px;
+            right: -100px;
+            animation: float 12s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(50px) scale(1.1); }
+        }
+
+        /* Layout */
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            width: 100%;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff, #94a3b8);
+            background-clip: text;  
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        p.subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Application Box */
+        .app-box {
+            width: 100%;
+            background: var(--bg-surface);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .app-box:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Form Elements */
+        .input-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+
+        textarea::placeholder {
+            color: rgba(148, 163, 184, 0.5);
+        }
+
+        /* Buttons */
+        .btn-analyze {
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-analyze:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6);
+            background: linear-gradient(135deg, #4f91ff, #306df0);
+        }
+
+        .btn-analyze:active {
+            transform: translateY(0);
+        }
+
+        .btn-analyze:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: translateY(0);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Results Area */
+        .result-container {
+            margin-top: 2rem;
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .result-container.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .result-card {
+            padding: 2rem;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+        }
+
+        .result-card.spam {
+            border-color: rgba(239, 68, 68, 0.5);
+            background: linear-gradient(to right, rgba(239, 68, 68, 0.05), rgba(0,0,0,0));
+            box-shadow: 0 0 30px var(--danger-glow);
+        }
+
+        .result-card.ham {
+            border-color: rgba(16, 185, 129, 0.5);
+            background: linear-gradient(to right, rgba(16, 185, 129, 0.05), rgba(0,0,0,0));
+            box-shadow: 0 0 30px var(--success-glow);
+        }
+
+        .icon-container {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spam .icon-container {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .ham .icon-container {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .result-info h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .spam .result-info h3 { color: var(--danger); }
+        .ham .result-info h3 { color: var(--success); }
+
+        .result-info p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Error message */
+        .error-message {
+            margin-top: 1rem;
+            color: var(--danger);
+            font-size: 0.9rem;
+            text-align: center;
+            display: none;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .app-box { padding: 1.5rem; }
+            .result-card { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ambient Background Effects -->
+    <div class="ambient-light light-1"></div>
+    <div class="ambient-light light-2"></div>
+
+    <div class="container">
+        <header>
+            <h1>Intelligent Email Analyzer</h1>
+            <p class="subtitle">Leverage our machine learning engine to instantly detect spam, phishing attempts, and safe communications.</p>
+        </header>
+
+        <main class="app-box">
+            <div class="input-group">
+                <label for="email-content">Email Content</label>
+                <textarea id="email-content" placeholder="Paste the email subject and body here to analyze its safety and intent..."></textarea>
+            </div>
+
+            <button id="analyze-btn" class="btn-analyze" onclick="analyzeEmail()">
+                <i data-feather="shield"></i>
+                <span id="btn-text">Analyze Email</span>
+                <div id="spinner" class="spinner"></div>
+            </button>
+            <div id="error-message" class="error-message"></div>
+
+            <div id="result-container" class="result-container">
+                <div id="result-card" class="result-card">
+                    <div class="icon-container">
+                        <i id="result-icon" data-feather="check-circle" style="width: 32px; height: 32px;"></i>
+                    </div>
+                    <div class="result-info">
+                        <h3 id="result-title">Safe Content</h3>
+                        <p id="result-desc">This email appears to be legitimate and shows no signs of spam or malicious intent.</p>
+                        <p id="result-why" style="margin-top:10px; color:#94a3b8; font-size:0.9rem;"></p>
+                        <p id="result-confidence" style="margin-top:6px; font-weight:500;"></p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Intelligent Email Analyzer. Built for advanced security.</p>
+    </footer>
+
+    <script>
+        // Initialize Feather Icons
+        feather.replace();
+
+        async function analyzeEmail() {
+            const contentInput = document.getElementById('email-content');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const btnText = document.getElementById('btn-text');
+            const spinner = document.getElementById('spinner');
+            const resultContainer = document.getElementById('result-container');
+            const resultCard = document.getElementById('result-card');
+            const resultIcon = document.getElementById('result-icon');
+            const resultTitle = document.getElementById('result-title');
+            const resultDesc = document.getElementById('result-desc');
+            const resultWhy = document.getElementById('result-why');
+            const resultConfidence = document.getElementById('result-confidence');
+            const errorMsg = document.getElementById('error-message');
+
+            const text = contentInput.value.trim();
+
+            if (!text) {
+                errorMsg.textContent = "Please enter some email content to analyze.";
+                errorMsg.style.display = "block";
+                return;
+            }
+
+            // Hide previous results & errors
+            errorMsg.style.display = "none";
+            resultContainer.classList.remove('show');
+            
+            // Set loading state
+            analyzeBtn.disabled = true;
+            btnText.style.display = 'none';
+            spinner.style.display = 'block';
+
+            try {
+                // Call the Flask Backend
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: text }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Server error occurred.');
+                }
+
+                // Simulate slight network delay for better UX feel
+                setTimeout(() => {
+                    // Reset Button State
+                    analyzeBtn.disabled = false;
+                    btnText.style.display = 'inline';
+                    spinner.style.display = 'none';
+
+                    // Update UI based on prediction
+                    resultCard.className = 'result-card'; // reset classes
+                    
+                    if (data.prediction === 'Spam') {
+                        resultCard.classList.add('spam');
+                        resultTitle.textContent = "Spam Detected";
+                        resultDesc.textContent = "Warning! This message exhibits characteristics commonly found in spam or unsolicited mail. Proceed with caution.";
+                        resultIcon.setAttribute('data-feather', 'alert-triangle');
+                    } else {
+                        resultCard.classList.add('ham');
+                        resultTitle.textContent = "Clean (Ham)";
+                        resultDesc.textContent = "This email appears to be a legitimate communication and shows no signs of being spam.";
+                        resultIcon.setAttribute('data-feather', 'check-circle');
+                    }
+
+                    if (data.words && data.words.length > 0) {
+                        resultWhy.textContent = "Key indicators: " + data.words.join(", ");
+                    } else {
+                        resultWhy.textContent = "";
+                    }
+
+                    // show confidence + risk
+                    const confidence = data.confidence;
+
+                    resultConfidence.textContent =
+                        "Confidence: " + (confidence * 100).toFixed(1) + "%";
+
+                    if (confidence > 0.6) {
+                        resultConfidence.textContent += " | High Risk 🚨";
+                    } else if (confidence < 0.4) {
+                        resultConfidence.textContent += " | Low Risk ✅";
+                    } else {
+                        resultConfidence.textContent += " | Medium Risk ⚠️";
+                    }
+                    
+                    feather.replace();
+                    resultContainer.classList.add('show');
+                    
+                    // Smooth scroll to result
+                    resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                }, 800);
+
+            } catch (error) {
+                // Handle Error
+                analyzeBtn.disabled = false;
+                btnText.style.display = 'inline';
+                spinner.style.display = 'none';
+                
+                errorMsg.textContent = error.message.includes('fetch') 
+                    ? "Failed to connect to the server. Make sure the backend is running." 
+                    : error.message;
+                errorMsg.style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>

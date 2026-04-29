@@ -1,0 +1,26 @@
+# Python and Virtual Environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env/
+.venv/
+Scripts/
+locally stored/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environment variables
+.env
+.flaskenv
+
+# IDE / Editor
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
